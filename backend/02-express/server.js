@@ -1,10 +1,30 @@
 import express from "express";
+import 'dotenv/config'
+import logger from "./logger.js";
+import morgan from "morgan";
 
 const app = express();
 
 app.use(express.json());
 
-const port = 3000;
+const morganFormat = ":method :url :status :response-time ms";
+app.use(
+  morgan(morganFormat, {
+    stream: {
+      write: (message) => {
+        const logObject = {
+          method: message.split(" ")[0],
+          url: message.split(" ")[1],
+          status: message.split(" ")[2],
+          responseTime: message.split(" ")[3],
+        };
+        logger.info(JSON.stringify(logObject));
+      },
+    },
+  })
+);
+
+const port = process.env.PORT||3000;
 
 let dataTea = [{
     id: 1,
@@ -36,6 +56,7 @@ app.post("/tea", (req, res) => {
 
 //get tea
 app.get("/tea", (req, res) => {
+    logger.info("Get All tea request by the user")
   res.status(201).send(dataTea);
 });
 
